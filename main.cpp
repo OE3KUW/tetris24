@@ -416,7 +416,7 @@ void setNextFigure(int p[][N])
         case  1: p[3][3] = RED; p[3][4] = RED; p[4][3] = RED; p[4][4] = RED; break;
         case  2: // feichtinger
         case  3: //isufi
-        case  4: // heindl
+        case  4: p[3][3] = BLUE; p[3][2] = BLUE; break;// heindl
         case  5: // bruno
         case  6: //jakob
         case  7: p[3][3] = RED; p[3][2] = RED; p[3][4] = RED; p[4][3] = RED; break;
