@@ -211,6 +211,11 @@ int main()
         if (refresh) { window.display(); refresh = FALSE;}
         std::  this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+    
+    window.close();
+    
+    printf("--- ende! ---\n");
+    system("Pause");
 
     return 0;
 }
@@ -409,7 +414,7 @@ void setNextFigure(int p[][N])
 
         case  0: p[3][3] = CYAN; break;
         case  1: p[3][3] = RED; p[3][4] = RED; p[4][3] = RED; p[4][4] = RED; break;
-        case  2: // feichtinger
+        case  2: p[2][2] = RED; p[2][3] = RED; p[2][4] = RED; p[3][2] = RED; p[3][3] = RED; p[3][4] = RED; p[4][2] = RED; p[4][3] = RED; p[4][4] = RED; break; // feichtinger
         case  3: p[3][3] = GREEN; p[2][3] = GREEN; p[4][3] = GREEN; p[3][4] = GREEN;  p[3][2] = GREEN;break; //isufi
         case  4: // heindl
         case  5: // bruno
