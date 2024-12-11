@@ -8,6 +8,8 @@
  * nov 16  - drawText now with colors          (Paul Kronawitter)
  * nov 16  - generate figures started
  * nov 30  - first figures are falling
+ * dec 11  - merge first change requests (Feichtinger, Iusufi,
+ *           Hintermeier, Kerschbaumer, Landrichter, Haindl, Moosbauer)
  *****************************************************************************
  * install:download https://www.sfml-dev.org/download.php SFML 2.6.2 or higher
  * extract it, store it: C:/TechnischeInformatik/Cpp/SFML  ... see CMake.txt
@@ -20,6 +22,7 @@
 #include <chrono> // Für std::chrono::milliseconds
 
 using namespace sf;
+
 
 #define TRUE                 1
 #define FALSE                0
@@ -57,7 +60,7 @@ using namespace sf;
 int stage [ROWS][COLS] = {{0}};
 int frozen[ROWS][COLS] = {{0}};
 int shadow[ROWS][COLS] = {{0}};
-
+/**/int sPattern[N][N] = {{0}};
 
 enum COLORS {
     BLACK = 0,
@@ -78,7 +81,6 @@ enum COLORS {
 RenderWindow * w;
 
 // ****************************** prototypes: *********************************
-
 void drawSquare(int y, int x, int color);
 void drawLine(int x1, int y1, int x2, int y2, int color); // Lintner
 void drawText(char * string, int x, int y, int color); // Kranewitter
@@ -87,7 +89,6 @@ void drawPatternFrame(void);
 void drawPattern(int p[][N]);
 void drawStage(void);
 void drawFrozen(void);
-
 
 void setNextFigure(int p[][N]);
 void setNewCenterPoint(int *y, int *x);
@@ -98,8 +99,13 @@ void exchangePatternBoxes(int p[][N],
                           int y3, int x3, int y4, int x4,
                           int y5, int x5, int y6, int x6);
 void rotatePattern(int p[][N]);
+void storePattern(int p[][N]);
+void reStorePattern(int p[][N]);
+int rotationIsNotPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
+
 
 int isMovePossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
+int isMoveLeftPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
 void move(int cx, int cy, int s[][COLS], int p[][N]);
 void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
 
@@ -135,19 +141,28 @@ int main()
 
             if (Keyboard::isKeyPressed(Keyboard::Space))
             {
-                if (doItOnlyOnce) {  // diese Funktion wird jeweils zweimal angesprochen...
-                    // bisherige pattern speichern
+                // diese Funktion wird jeweils zweimal angesprochen...
+                if (doItOnlyOnce) {
+                    storePattern(pattern); // bisherige pattern speichern
                     rotatePattern(pattern);
                     drawPattern(pattern);
                     refresh = TRUE;
                     doItOnlyOnce = FALSE;
+
+                    if (rotationIsNotPossible(cx, cy, stage, frozen, pattern))
+                    {
+                        reStorePattern(pattern);
+                    }
                     // falls sich die neue Figur nicht übertragen lässt -> zurück zur gespeicherten
 
                 } else doItOnlyOnce = TRUE;
 
             } else if (Keyboard::isKeyPressed(Keyboard::Left))
             {
-                    count = 10000;
+                if (isMoveLeftPossible(cx, cy, stage, frozen, pattern))
+                {
+                    move(--cx, cy, stage, pattern);
+                }
             } else if (Keyboard::isKeyPressed(Keyboard::Right))
             {
                     count = 0;
@@ -166,12 +181,10 @@ int main()
             }
         }
 
-
         window.clear();
         drawStageFrame();
         drawPatternFrame();
         drawPattern(pattern);
-
 
 
         tick++;
@@ -183,7 +196,7 @@ int main()
 
             if (isMovePossible(cx, cy, stage, frozen, pattern))
             {
-                move(cx, ++cy, stage, pattern);
+                    move(cx, ++cy, stage, pattern);
             }
             else
             {
@@ -192,14 +205,11 @@ int main()
                 // neues Element einbauen
                 setNextFigure(pattern);
                 setNewCenterPoint(&cy,&cx);
-
                 // überprüfe alle Zeilen in frozen auf Völlständigkeit
                 // falls Vollständig -> Zeile löschen
 
             }
             count++;
-
-
         }
 
         drawStage();
@@ -211,9 +221,7 @@ int main()
         if (refresh) { window.display(); refresh = FALSE;}
         std::  this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    printf("--- ende! ---\n");
-    system("Pause");
-
+    window.close();
     return 0;
 }
 
@@ -268,7 +276,6 @@ void drawSquare(int y, int x, int color)
 void drawLine(int x1, int y1, int x2, int y2, int color)
 {
     sf::VertexArray line(sf::Lines, 2);
-
     // Startpunkt der Linie
     line[0].position = sf::Vector2f(x1, y1);
     //line[0].color = sf::Color::White;
@@ -411,7 +418,7 @@ void setNextFigure(int p[][N])
 
         case  0: p[3][3] = CYAN; break;
         case  1: p[3][3] = RED; p[3][4] = RED; p[4][3] = RED; p[4][4] = RED; break;
-        case  2: // feichtinger
+        case  2: p[2][2] = YELLOW; p[2][3] = WHITE; p[2][4] = GREEN; p[3][2] = MAGENTA; p[3][3] = CYAN; p[3][4] = BLUE; p[4][2] = RED; p[4][3] = GREEN; p[4][4] = RED; break;// feichtinger
         case  3: //isufi
         case  4: // heindl
         case  5: // bruno
@@ -426,7 +433,6 @@ void setNextFigure(int p[][N])
         case 14: // seracin
         case 15: p[2][2] = BLUE; p[2][3] = BLUE; p[2][4] = BLUE; p[4][2] = BLUE; p[4][3] = BLUE; p[4][4] = BLUE; p[3][4] = BLUE; break;
     }
-
 }
 void rotatePattern(int p[][N])
 {
@@ -490,13 +496,52 @@ void drawFrozen(void)
         }
 }
 
-void move(int cx, int cy, int s[][COLS], int p[][N])
+
+void storePattern(int p[][N])
 {
     int i, j;
     for (j = 0; j < N; j++)
         for (i = 0; i < N; i++)
-            s[cy - 3 + j][cx - 3 + i] = p[j][i];
+            sPattern[j][i] = p[j]   [i];
 }
+
+void reStorePattern(int p[][N])
+{
+    int i, j;
+    for (j = 0; j < N; j++)
+        for (i = 0; i < N; i++)
+            p[j][i] = sPattern[j][i];
+}
+
+int rotationIsNotPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
+{
+    int ret = FALSE; //Is Not Possible ...
+    int i, j;
+
+    for (j = 0; (j < N) && (ret == FALSE); j++)
+        for (i = 0; (i < N) && (ret == FALSE); i++)
+        {
+            if (p[j][i])
+            {
+                // check border
+                if ((j - 3 + cy) >= ROWS)      ret = TRUE;
+                else if ((j - 3 + cy) < 0)     ret = TRUE;
+                else if ((i - 3 + cx) >= COLS) ret = TRUE;
+                else if ((i - 3 + cx) < 0)     ret = TRUE;
+
+                    // check frozen elements
+
+                else if (f[j - 3 + cy][i - 3 + cx]) ret = TRUE;
+
+            }
+        }
+
+
+
+
+    return ret;
+}
+
 
 int isMovePossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
 // check: is a move (cy++) possible?: if not: freeze it, attention check boarders
@@ -546,6 +591,71 @@ int isMovePossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
     if (ret == FALSE)
     {
         cy--; // zurück!
+        for (j = 0; j < N; j++)
+            for (i = 0; i < N; i++)
+                if (p[j][i]) s[cy - 3 + j][cx - 3 + i] = p[j][i];
+    }
+
+    return ret;
+}
+void move(int cx, int cy, int s[][COLS], int p[][N])
+{
+    int i, j;
+    for (j = 0; j < N; j++)
+        for (i = 0; i < N; i++)
+            s[cy - 3 + j][cx - 3 + i] = p[j][i];
+}
+
+
+int isMoveLeftPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
+// check: is a move (cy++) possible?: if not: freeze it, attention check boarders
+{
+    int ret = TRUE, i, j;
+
+    // damit die eigene Figur nicht sich selbst im Weg steht wird sie hier zunächst entfernt.
+    // dabei gehen wir davon aus, dass sie sich auf einer erlaubten Position befindet
+
+    for (j = 0; j < N; j++)
+       for (i = 0; i < N; i++)
+            if (p[j][i])
+                s[cy - 3 + j][cx - 3 + i] = BLACK;
+
+    // nun wird ein Move des Zentrums nach links ! versucht:
+
+    cx--; // !
+
+    // für jedes verschobene Element wird nun überprüft, ob der Platz frei ist
+    // also ob kein frozen element überschrieben werden würde und
+    // ob der Platz noch im Rahmen liegt.
+    // sobald das auch nur ein einziges Mal nicht der Fall ist: ret = FALSE
+
+    for (j = 0; (j < N) && (ret); j++)
+        for (i = 0; (i < N) && (ret); i++)
+        {
+            if (p[j][i])
+            {
+                // check border
+                     if ((j - 3 + cy) >= ROWS) ret = FALSE;
+                else if ((j - 3 + cy) < 0)     ret = FALSE;
+                else if ((i - 3 + cx) >= COLS) ret = FALSE;
+                else if ((i - 3 + cx) < 0)     ret = FALSE;
+
+
+                // check frozen elements
+
+                else if (f[j - 3 + cy][i - 3 + cx]) ret = FALSE;
+
+            }
+        }
+
+
+    // Falls FALSE:
+    // Vor dem Return wird die Figur an die ursprüngliche Position wieder zurück eingetragen
+    // falls TRUE - nicht mehr.
+
+    if (ret == FALSE)
+    {
+        cx++; // zurück!
         for (j = 0; j < N; j++)
             for (i = 0; i < N; i++)
                 if (p[j][i]) s[cy - 3 + j][cx - 3 + i] = p[j][i];
