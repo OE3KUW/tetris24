@@ -221,7 +221,14 @@ int main()
         if (refresh) { window.display(); refresh = FALSE;}
         std::  this_thread::sleep_for(std::chrono::milliseconds(1));
     }
+<<<<<<< HEAD
     window.close();
+=======
+    
+    window.close();
+    
+    printf("--- ende! ---\n");
+    system("Pause");
     return 0;
 }
 
@@ -418,19 +425,19 @@ void setNextFigure(int p[][N])
 
         case  0: p[3][3] = CYAN; break;
         case  1: p[3][3] = RED; p[3][4] = RED; p[4][3] = RED; p[4][4] = RED; break;
-        case  2: p[2][2] = YELLOW; p[2][3] = WHITE; p[2][4] = GREEN; p[3][2] = MAGENTA; p[3][3] = CYAN; p[3][4] = BLUE; p[4][2] = RED; p[4][3] = GREEN; p[4][4] = RED; break;// feichtinger
-        case  3: //isufi
-        case  4: // heindl
-        case  5: // bruno
-        case  6: //jakob
+        case  2: p[2][2] = RED; p[2][3] = RED; p[2][4] = RED; p[3][2] = RED; p[3][3] = RED; p[3][4] = RED; p[4][2] = RED; p[4][3] = RED; p[4][4] = RED; break; // feichtinger
+        case  3: p[3][3] = GREEN; p[2][3] = GREEN; p[4][3] = GREEN; p[3][4] = GREEN;  p[3][2] = GREEN;break; //isufi
+        case  4: p[3][3] = BLUE; p[3][2] = BLUE; break;// heindl
+        case  5: p[3][3] = RED; p[3][2] = RED; p[3][4] = RED; break; // bruno
+        case  6: p[3][3] = RED; p[3][2] = RED; p[4][3] = RED; break; //jakob
         case  7: p[3][3] = RED; p[3][2] = RED; p[3][4] = RED; p[4][3] = RED; break;
         case  8: //zeiringer
         case  9: // gregor
-        case 10: // kerschbaumer
+        case 10: p[3][3] = RED; p[3][4] = RED; p[3][1] = RED; p[3][2] = RED; p[4][4] = RED; break// kerschbaumer
         case 11: p[3][3] = YELLOW; p[2][3] = YELLOW; p[3][2] = YELLOW; p[2][4] = YELLOW; break;
         case 12: // arnold
-        case 13:// tobias
-        case 14: // seracin
+        case 13: p[1][1] = GREEN; p[2][2] = GREEN; p[3][3] = GREEN; break; // tobias.m
+        case 14: p[1][1] = MAGENTA; p[2][1] = MAGENTA; p[3][1] = MAGENTA; p[3][2] = MAGENTA; break; // tobias.m
         case 15: p[2][2] = BLUE; p[2][3] = BLUE; p[2][4] = BLUE; p[4][2] = BLUE; p[4][3] = BLUE; p[4][4] = BLUE; p[3][4] = BLUE; break;
     }
 }
