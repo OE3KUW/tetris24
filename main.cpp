@@ -23,7 +23,6 @@
 
 using namespace sf;
 
-
 #define TRUE                 1
 #define FALSE                0
 
@@ -55,7 +54,9 @@ using namespace sf;
 #define TEXT_LEVEL        (BRY - 24)
 
 #define MAX_FIGURE          16
-
+#define LEFT                1
+#define RIGHT               2
+#define DOWN                3
 
 int stage [ROWS][COLS] = {{0}};
 int frozen[ROWS][COLS] = {{0}};
@@ -103,11 +104,11 @@ void storePattern(int p[][N]);
 void reStorePattern(int p[][N]);
 int rotationIsNotPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
 
+int isMovePossible(int cx, int cy, int dir, int s[][COLS], int f[][COLS], int p[][N]);
 
-int isMovePossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
-int isMoveLeftPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
 void move(int cx, int cy, int s[][COLS], int p[][N]);
 void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
+void eliminateCompletedLine(void);
 
 
 // ******************************   m a i n:  *********************************
@@ -159,7 +160,7 @@ int main()
 
             } else if (Keyboard::isKeyPressed(Keyboard::Left))
             {
-                if (isMoveLeftPossible(cx, cy, stage, frozen, pattern))
+                if (isMovePossible(cx, cy, LEFT, stage, frozen, pattern))
                 {
                     move(--cx, cy, stage, pattern);
                 }
@@ -194,7 +195,7 @@ int main()
             tick = 0;
             refresh = TRUE;
 
-            if (isMovePossible(cx, cy, stage, frozen, pattern))
+            if (isMovePossible(cx, cy, DOWN, stage, frozen, pattern)) // ###
             {
                     move(cx, ++cy, stage, pattern);
             }
@@ -205,8 +206,12 @@ int main()
                 // neues Element einbauen
                 setNextFigure(pattern);
                 setNewCenterPoint(&cy,&cx);
+
                 // überprüfe alle Zeilen in frozen auf Völlständigkeit
                 // falls Vollständig -> Zeile löschen
+
+                eliminateCompletedLine();
+
 
             }
             count++;
@@ -543,8 +548,8 @@ int rotationIsNotPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][
     return ret;
 }
 
-
-int isMovePossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
+/*
+int isMovePossibleD(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
 // check: is a move (cy++) possible?: if not: freeze it, attention check boarders
 {
     int ret = TRUE, i, j;
@@ -599,6 +604,8 @@ int isMovePossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
 
     return ret;
 }
+*/
+
 void move(int cx, int cy, int s[][COLS], int p[][N])
 {
     int i, j;
@@ -608,8 +615,7 @@ void move(int cx, int cy, int s[][COLS], int p[][N])
 }
 
 
-int isMoveLeftPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
-// check: is a move (cy++) possible?: if not: freeze it, attention check boarders
+int isMovePossible(int cx, int cy, int dir, int s[][COLS], int f[][COLS], int p[][N])
 {
     int ret = TRUE, i, j;
 
@@ -623,7 +629,11 @@ int isMoveLeftPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
 
     // nun wird ein Move des Zentrums nach links ! versucht:
 
-    cx--; // !
+    switch (dir) {
+        case LEFT:   cx--; break;
+        case RIGHT:  cx++; break;
+        case DOWN:   cy++; break;
+    }
 
     // für jedes verschobene Element wird nun überprüft, ob der Platz frei ist
     // also ob kein frozen element überschrieben werden würde und
@@ -656,7 +666,13 @@ int isMoveLeftPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
 
     if (ret == FALSE)
     {
-        cx++; // zurück!
+        // zurück!
+
+        switch (dir) {
+            case LEFT:   cx++; break;
+            case RIGHT:  cx--; break;
+            case DOWN:   cy--; break;
+        }
         for (j = 0; j < N; j++)
             for (i = 0; i < N; i++)
                 if (p[j][i]) s[cy - 3 + j][cx - 3 + i] = p[j][i];
@@ -678,3 +694,7 @@ void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
             }
 }
 
+void eliminateCompletedLine(void)
+{
+
+}
