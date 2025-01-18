@@ -10,6 +10,7 @@
  * nov 30  - first figures are falling
  * dec 11  - merge first change requests (Feichtinger, Iusufi,
  *           Hintermeier, Kerschbaumer, Landrichter, Haindl, Moosbauer)
+ * jan 10  - over next figure window
  *****************************************************************************
  * install:download https://www.sfml-dev.org/download.php SFML 2.6.2 or higher
  * extract it, store it: C:/TechnischeInformatik/Cpp/SFML  ... see CMake.txt
@@ -22,6 +23,7 @@
 #include <chrono> // Für std::chrono::milliseconds
 
 using namespace sf;
+
 
 #define TRUE                 1
 #define FALSE                0
@@ -36,10 +38,17 @@ using namespace sf;
 #define BRX                500
 #define BRY                550
 
+
 #define TLPX               560  // Top Left Preparation window X
 #define TLPY               TLY
 #define BRPX               700
 #define BRPY               190
+
+#define TLOX               560  // Top Left over next window X
+#define TLOY               (TLY + 200)
+#define BROX               700
+#define BROY               (190 + 200)
+
 
 #define BOX_X              ((BRX - TLX)/COLS)
 #define BOX_Y              ((BRY - TLY)/(ROWS - HIDDEN_LINES))
@@ -90,8 +99,10 @@ void drawPatternFrame(void);
 void drawPattern(int p[][N]);
 void drawStage(void);
 void drawFrozen(void);
+void drawOverNextPatternFrame(void);    //#1
+void drawOverNextPattern(int onp[][N]); //#1
 
-void setNextFigure(int p[][N]);
+void setNextFigure(int p[][N], int onp[][N]);
 void setNewCenterPoint(int *y, int *x);
 
 void exchange2Boxes(int p[][N],int y1, int x1, int y2, int x2);
@@ -104,11 +115,11 @@ void storePattern(int p[][N]);
 void reStorePattern(int p[][N]);
 int rotationIsNotPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
 
-int isMovePossible(int cx, int cy, int dir, int s[][COLS], int f[][COLS], int p[][N]);
+int isMovePossibleD(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
 
+int isMovePossible(int cx, int cy, int dir, int s[][COLS], int f[][COLS], int p[][N]);
 void move(int cx, int cy, int s[][COLS], int p[][N]);
 void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
-void eliminateCompletedLine(void);
 
 
 // ******************************   m a i n:  *********************************
@@ -118,6 +129,7 @@ int main()
     char text[TEXT_LENGTH];
     int count = 0;
     int pattern[N][N] = {{0}};
+    int overNextPattern[N][N] = {{0}};   //#1
     int refresh = TRUE;
     int work = TRUE;
     int doItOnlyOnce = TRUE;
@@ -130,7 +142,11 @@ int main()
 
 
     // inits:
-    setNextFigure(pattern);
+    setNextFigure(pattern, overNextPattern);
+
+    setNextFigure(pattern, overNextPattern);
+
+
     setNewCenterPoint(&cy,&cx);
     printf("ok!\n");
     while (window.isOpen() && work)
@@ -166,11 +182,17 @@ int main()
                 }
             } else if (Keyboard::isKeyPressed(Keyboard::Right))
             {
-                    count = 0;
+                if (isMovePossible(cx, cy, RIGHT, stage, frozen, pattern))
+                {
+                    move(++cx, cy, stage, pattern);
+                }
             }
             else if (Keyboard::isKeyPressed(Keyboard::Down))
             {
-                count = 0;
+                while (isMovePossibleD(cx, cy, stage, frozen, pattern))
+                {
+                    move(cx, ++cy, stage, pattern);
+                }
             }
             else if (Keyboard::isKeyPressed(Keyboard::Enter))
             {
@@ -187,6 +209,9 @@ int main()
         drawPatternFrame();
         drawPattern(pattern);
 
+        drawOverNextPatternFrame();                 //#2
+        drawOverNextPattern(overNextPattern);       //#2
+
 
         tick++;
 
@@ -195,7 +220,7 @@ int main()
             tick = 0;
             refresh = TRUE;
 
-            if (isMovePossible(cx, cy, DOWN, stage, frozen, pattern)) // ###
+            if (isMovePossibleD(cx, cy, stage, frozen, pattern))
             {
                     move(cx, ++cy, stage, pattern);
             }
@@ -204,14 +229,10 @@ int main()
                 freeze(cx, cy, stage, frozen, pattern);
 
                 // neues Element einbauen
-                setNextFigure(pattern);
+                setNextFigure(pattern, overNextPattern);
                 setNewCenterPoint(&cy,&cx);
-
                 // überprüfe alle Zeilen in frozen auf Völlständigkeit
                 // falls Vollständig -> Zeile löschen
-
-                eliminateCompletedLine();
-
 
             }
             count++;
@@ -233,6 +254,7 @@ int main()
 
 
 // ****************************** functions: **********************************
+
 
 void drawSquare(int y, int x, int color)
 //  paint square; stage position, color
@@ -381,6 +403,13 @@ void drawPatternFrame(void)
     drawLine(TLPX - 1, TLPY - 1, BRPX + 1, TLPY - 1, WHITE);
 }
 
+void drawOverNextPatternFrame(void)
+{
+    drawLine(TLOX - 1, TLOY - 1, TLOX - 1, BROY + 1, WHITE);
+    drawLine(TLOX - 1, BROY + 1, BROX + 1, BROY + 1, WHITE);
+    drawLine(BROX + 1, TLOY - 1, BROX + 1, BROY + 1, WHITE);
+    drawLine(TLOX - 1, TLOY - 1, BROX + 1, TLOY - 1, WHITE);
+}
 
 void drawPattern(int p[][N])
 /// pattern - array
@@ -408,37 +437,67 @@ void drawPattern(int p[][N])
     }
 
 }
+void drawOverNextPattern(int onp[][N])
+/// pattern - array
+{
+    int x, y;
+    RectangleShape Rect(sf::Vector2f(BOX_X_SIZE, BOX_Y_SIZE ));
 
-void setNextFigure(int p[][N])
+    for (y = 0; y < N; y++) for (x = 0; x < N; x++)
+        {
+            switch (onp[y][x])
+            {
+                case BLACK:         Rect.setFillColor(sf::Color::Black);       break;
+                case WHITE:         Rect.setFillColor(sf::Color::White);       break;
+                case RED:           Rect.setFillColor(sf::Color::Red);         break;
+                case GREEN:         Rect.setFillColor(sf::Color::Green);       break;
+                case BLUE:          Rect.setFillColor(sf::Color::Blue);        break;
+                case YELLOW:        Rect.setFillColor(sf::Color::Yellow);      break;
+                case MAGENTA:       Rect.setFillColor(sf::Color::Magenta);     break;
+                case CYAN:          Rect.setFillColor(sf::Color::Cyan);        break;
+                case TRANSPARENT:   Rect.setFillColor(sf::Color::Transparent); break;
+                default: std::cerr << "unknown color used in drawSquare" << std::endl;
+            }
+            Rect.setPosition((x * BOX_X) + TLOX,  (y * BOX_Y) + TLOY);
+            w->draw(Rect);
+        }
+
+}
+
+
+void setNextFigure(int p[][N], int onp[][N])
 {
     int x, y;
     int figure;
 
     // pattern löschen:
-    for (y = 0; (y) < N; ++y) for (x = 0; x < N; ++x) p[y][x] = 0;
+    //for (y = 0; (y) < N; ++y) for (x = 0; x < N; ++x) p[y][x] = 0;
+    for (y = 0; (y) < N; ++y) for (x = 0; x < N; ++x) p[y][x] = onp[y][x];
+    for (y = 0; (y) < N; ++y) for (x = 0; x < N; ++x) onp[y][x] = 0;
 
     figure = rand()% MAX_FIGURE;
 
 
     switch (figure) {
 
-        case  0: p[3][3] = CYAN; break;
-        case  1: p[3][3] = BLUE; p[3][4] = BLUE; p[4][3] = BLUE; p[4][4] = BLUE; break;
-        case  2: p[2][2] = RED; p[2][3] = RED; p[2][4] = RED; p[3][2] = RED; p[3][3] = RED; p[3][4] = RED; p[4][2] = RED; p[4][3] = RED; p[4][4] = RED; break; // feichtinger
-        case  3: p[3][3] = GREEN; p[2][3] = GREEN; p[4][3] = GREEN; p[3][4] = GREEN;  p[3][2] = GREEN;break; //isufi
-        case  4: p[3][3] = WHITE; p[3][2] = WHITE; break;// heindl
-        case  5: p[3][3] = MAGENTA; p[3][2] = MAGENTA; p[3][4] = MAGENTA; break; // bruno
-        case  6: p[3][3] = RED; p[3][2] = RED; p[4][3] = RED; break; //jakob
-        case  7: p[3][3] = CYAN; p[3][2] = CYAN; p[3][4] = CYAN; p[4][3] = CYAN; break;
-        case  8: //zeiringer
+        case  0: onp[3][3] = CYAN; break;
+        case  1: onp[3][3] = BLUE; onp[3][4] = BLUE; onp[4][3] = BLUE; onp[4][4] = BLUE; break;
+        case  2: onp[2][2] = RED; onp[2][3] = RED; onp[2][4] = RED; onp[3][2] = RED; onp[3][3] = RED; onp[3][4] = RED; onp[4][2] = RED; onp[4][3] = RED; onp[4][4] = RED; break; // feichtinger
+        case  3: onp[3][3] = GREEN; onp[2][3] = GREEN; onp[4][3] = GREEN; onp[3][4] = GREEN;  onp[3][2] = GREEN;break; //isufi
+        case  4: onp[3][3] = WHITE; onp[3][2] = WHITE; break;// heindl
+        case  5: onp[3][3] = MAGENTA; onp[3][2] = MAGENTA; onp[3][4] = MAGENTA; break; // bruno
+        case  6: onp[3][3] = RED; onp[3][2] = RED; onp[4][3] = RED; break; //jakob
+        case  7: onp[3][3] = CYAN; onp[3][2] = CYAN; onp[3][4] = CYAN; onp[4][3] = CYAN; break;
+        case  8: // zeiringer
         case  9: // gregor
-        case 10: p[3][3] = RED; p[3][4] = RED; p[3][1] = RED; p[3][2] = RED; p[4][4] = RED; break;// kerschbau mer
-        case 11: p[3][3] = YELLOW; p[2][3] = YELLOW; p[3][2] = YELLOW; p[2][4] = YELLOW; break;
+        case 10: onp[3][3] = RED; onp[3][4] = RED; onp[3][1] = RED; onp[3][2] = RED; onp[4][4] = RED; break;// kerschbau mer
+        case 11: onp[3][3] = YELLOW; onp[2][3] = YELLOW; onp[3][2] = YELLOW; onp[2][4] = YELLOW; break;
         case 12: // arnold
-        case 13: p[1][1] = GREEN; p[2][2] = GREEN; p[3][3] = GREEN; break; // tobias.m
-        case 14: p[1][1] = MAGENTA; p[2][1] = MAGENTA; p[3][1] = MAGENTA; p[3][2] = MAGENTA; break; // tobias.m
-        case 15: p[2][2] = BLUE; p[2][3] = BLUE; p[2][4] = BLUE; p[4][2] = BLUE; p[4][3] = BLUE; p[4][4] = BLUE; p[3][4] = BLUE; break;
+        case 13: onp[1][1] = GREEN; onp[2][2] = GREEN; onp[3][3] = GREEN; break; // tobias.m
+        case 14: onp[1][1] = MAGENTA; onp[2][1] = MAGENTA; onp[3][1] = MAGENTA; onp[3][2] = MAGENTA; break; // tobias.m
+        case 15: onp[2][2] = BLUE; onp[2][3] = BLUE; onp[2][4] = BLUE; onp[4][2] = BLUE; onp[4][3] = BLUE; onp[4][4] = BLUE; onp[3][4] = BLUE; break;
     }
+
 }
 void rotatePattern(int p[][N])
 {
@@ -548,7 +607,7 @@ int rotationIsNotPossible(int cx, int cy, int s[][COLS], int f[][COLS], int p[][
     return ret;
 }
 
-/*
+
 int isMovePossibleD(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
 // check: is a move (cy++) possible?: if not: freeze it, attention check boarders
 {
@@ -604,7 +663,7 @@ int isMovePossibleD(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
 
     return ret;
 }
-*/
+
 
 void move(int cx, int cy, int s[][COLS], int p[][N])
 {
@@ -666,13 +725,7 @@ int isMovePossible(int cx, int cy, int dir, int s[][COLS], int f[][COLS], int p[
 
     if (ret == FALSE)
     {
-        // zurück!
-
-        switch (dir) {
-            case LEFT:   cx++; break;
-            case RIGHT:  cx--; break;
-            case DOWN:   cy--; break;
-        }
+        cx++; // zurück!
         for (j = 0; j < N; j++)
             for (i = 0; i < N; i++)
                 if (p[j][i]) s[cy - 3 + j][cx - 3 + i] = p[j][i];
@@ -694,7 +747,3 @@ void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
             }
 }
 
-void eliminateCompletedLine(void)
-{
-
-}
