@@ -480,22 +480,23 @@ void setNextFigure(int p[][N], int onp[][N])
 
     switch (figure) {
 
-        case  0: onp[3][3] = CYAN; break;
-        case  1: onp[3][3] = BLUE; onp[3][4] = BLUE; onp[4][3] = BLUE; onp[4][4] = BLUE; break;
-        case  2: onp[2][2] = RED; onp[2][3] = RED; onp[2][4] = RED; onp[3][2] = RED; onp[3][3] = RED; onp[3][4] = RED; onp[4][2] = RED; onp[4][3] = RED; onp[4][4] = RED; break; // feichtinger
-        case  3: onp[3][3] = GREEN; onp[2][3] = GREEN; onp[4][3] = GREEN; onp[3][4] = GREEN;  onp[3][2] = GREEN;break; //isufi
-        case  4: onp[3][3] = WHITE; onp[3][2] = WHITE; break;// heindl
-        case  5: onp[3][3] = MAGENTA; onp[3][2] = MAGENTA; onp[3][4] = MAGENTA; break; // bruno
-        case  6: onp[3][3] = RED; onp[3][2] = RED; onp[4][3] = RED; break; //jakob
-        case  7: onp[3][3] = CYAN; onp[3][2] = CYAN; onp[3][4] = CYAN; onp[4][3] = CYAN; break;
-        case  8: // zeiringer
-        case  9: // gregor
-        case 10: onp[3][3] = RED; onp[3][4] = RED; onp[3][1] = RED; onp[3][2] = RED; onp[4][4] = RED; break;// kerschbau mer
-        case 11: onp[3][3] = YELLOW; onp[2][3] = YELLOW; onp[3][2] = YELLOW; onp[2][4] = YELLOW; break;
-        case 12: // arnold
-        case 13: onp[1][1] = GREEN; onp[2][2] = GREEN; onp[3][3] = GREEN; break; // tobias.m
-        case 14: onp[1][1] = MAGENTA; onp[2][1] = MAGENTA; onp[3][1] = MAGENTA; onp[3][2] = MAGENTA; break; // tobias.m
-        case 15: onp[2][2] = BLUE; onp[2][3] = BLUE; onp[2][4] = BLUE; onp[4][2] = BLUE; onp[4][3] = BLUE; onp[4][4] = BLUE; onp[3][4] = BLUE; break;
+        case  0: p[3][3] = CYAN; break;
+        case  1: p[3][3] = BLUE; p[3][4] = BLUE; p[4][3] = BLUE; p[4][4] = BLUE; break;
+        case  2: p[2][2] = RED; p[2][3] = RED; p[2][4] = RED; p[3][2] = RED; p[3][3] = RED; p[3][4] = RED; p[4][2] = RED; p[4][3] = RED; p[4][4] = RED; break; // feichtinger
+        case  3: p[3][3] = GREEN; p[2][3] = GREEN; p[4][3] = GREEN; p[3][4] = GREEN;  p[3][2] = GREEN;break; //isufi
+        case  4: p[3][3] = WHITE; p[3][2] = WHITE; break;// heindl
+        case  5: p[3][3] = MAGENTA; p[3][2] = MAGENTA; p[3][4] = MAGENTA; break; // bruno
+        case  6: p[3][3] = RED; p[3][2] = RED; p[4][3] = RED; break; //jakob
+        case  7: p[3][3] = CYAN; p[3][2] = CYAN; p[3][4] = CYAN; p[4][3] = CYAN; break;
+        case  8: //zeiringer
+        case  9: p[3][3] = RED; p[3][2] = RED; p[2][2] = RED; p[3][4] = RED; break;// gregor Weber
+        case 10: p[3][3] = RED; p[3][4] = RED; p[3][1] = RED; p[3][2] = RED; p[4][4] = RED; break;// kerschbaumer
+        case 11: p[3][3] = YELLOW; p[2][3] = YELLOW; p[3][2] = YELLOW; p[2][4] = YELLOW; break;
+        case 12: p[3][3] = YELLOW; p[1][1] = YELLOW; p[2][2] = YELLOW; p[2][3] = YELLOW; break; //Arnold
+        case 13: p[1][1] = GREEN; p[2][2] = GREEN; p[3][3] = GREEN; break; // tobias.m
+        case 14: p[1][1] = MAGENTA; p[2][1] = MAGENTA; p[3][1] = MAGENTA; p[3][2] = MAGENTA; break; // tobias.m
+        case 15: p[2][2] = BLUE; p[2][3] = BLUE; p[2][4] = BLUE; p[4][2] = BLUE; p[4][3] = BLUE; p[4][4] = BLUE; p[3][4] = BLUE; break;
+
     }
 
 }
