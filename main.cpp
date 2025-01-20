@@ -120,6 +120,8 @@ int isMovePossibleD(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
 int isMovePossible(int cx, int cy, int dir, int s[][COLS], int f[][COLS], int p[][N]);
 void move(int cx, int cy, int s[][COLS], int p[][N]);
 void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
+void eliminateCompletedLine(int f[ROWS][COLS]);
+
 
 
 // ******************************   m a i n:  *********************************
@@ -233,6 +235,8 @@ int main()
                 setNewCenterPoint(&cy,&cx);
                 // überprüfe alle Zeilen in frozen auf Völlständigkeit
                 // falls Vollständig -> Zeile löschen
+
+                eliminateCompletedLine(frozen); //# Kranewitter
 
             }
             count++;
@@ -748,3 +752,31 @@ void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
             }
 }
 
+void eliminateCompletedLine(int f[ROWS][COLS])
+{
+    int eli = TRUE;
+
+    for(int j = ROWS - 1; j >= 0; j--)
+    {
+        eli = TRUE;
+        for(int i = 0; i < COLS; i++)
+        {
+            if(f[j][i] == FALSE)
+            {
+                i = COLS;
+                eli = FALSE;
+            }
+        }
+
+        if(eli == TRUE)
+        {
+            for(int l = j; l >= 1; l--)
+            {
+                for(int i = 0; i < COLS; i++)
+                {
+                    f[l][i] = f[l - 1][i];
+                }
+            }
+        }
+    }
+}
