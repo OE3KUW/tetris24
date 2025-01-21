@@ -15,6 +15,20 @@
  * install:download https://www.sfml-dev.org/download.php SFML 2.6.2 or higher
  * extract it, store it: C:/TechnischeInformatik/Cpp/SFML  ... see CMake.txt
  * copy from there SFML/bin/ all *.dll in your cmake-build-debug - compile :-)
+ * noch einmal auf Deutsch:
+ * 1) suche auf der Seite https://www.sfml-dev.org/download.php nach SFML
+ * 2) download von dort wähle: die GCC 14.2.0 MinGW (SEH) (UCRT) version
+ * 3) extrahiere das in ein Verzeichnis Deiner Wahl wie zB.
+ * c://TechnischeInformatik/Cpp/SFML
+ * 4) schau Dir die nun gespeicherten Files dort an.
+ * 5) in CMake.txt musst Du nun diese Files eintragen.
+ * derzeit steht dort:
+ * set(SFML_DIR "C://TechnischeInformatik/CPP/SFML/lib/cmake/SFML")
+ * Das muss jetzt natürlich zusammenstimmen.
+ * 6) in Deinem Verzeichnis C:/TechnischeInformatik/Cpp/SFML/bin/ findest
+ * Du alle dll-Files, also files mit der Endung dll. Die kopiere dorthin, wo
+ * Dein Projekt das exe-File erstellt. Das ist meist im cmake-build-debug
+ * Damit compilieren und starten.
 *****************************************************************************/
 #include <SFML/Graphics.hpp>
 #include <iostream>
