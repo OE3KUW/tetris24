@@ -101,6 +101,7 @@ void drawStage(void);
 void drawFrozen(void);
 void drawOverNextPatternFrame(void);    //#1
 void drawOverNextPattern(int onp[][N]); //#1
+void drawGrid(void);
 
 void setNextFigure(int p[][N], int onp[][N]);
 void setNewCenterPoint(int *y, int *x);
@@ -213,7 +214,7 @@ int main()
 
         drawOverNextPatternFrame();                 //#2
         drawOverNextPattern(overNextPattern);       //#2
-
+        drawGrid();
 
         tick++;
 
@@ -244,6 +245,7 @@ int main()
 
         drawStage();
         drawFrozen();
+        //drawGrid();
         sprintf(text, "count: %d", count);
         drawText(text, TEXT_X, TEXT_LEVEL, GREEN);
 
@@ -303,7 +305,14 @@ void drawSquare(int y, int x, int color)
 
        //  shadow[y][x] != color; }
 }
+void drawGrid(void)
+{
+    // Hi Fabian! Bitte erst wenn du wieder gesund bist!!!!....
+    // int i, j;
+    // i = 3;
 
+    // drawLine(TLX - i, TLY - i, BRX - i, BRY + i, WHITE);
+}
 ///  from x1,y1 to x2,y2, color
 void drawLine(int x1, int y1, int x2, int y2, int color)
 {
