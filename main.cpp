@@ -115,7 +115,8 @@ void drawStage(void);
 void drawFrozen(void);
 void drawOverNextPatternFrame(void);    //#1
 void drawOverNextPattern(int onp[][N]); //#1
-void drawGrid(void);
+void drawGrid(void);  // Fabian Berger
+void drawPlus(int x, int y); //helps draw Grid // Fabian Berger
 
 void setNextFigure(int p[][N], int onp[][N]);
 void setNewCenterPoint(int *y, int *x);
@@ -259,7 +260,7 @@ int main()
 
         drawStage();
         drawFrozen();
-        //drawGrid();
+        drawGrid();
         sprintf(text, "count: %d", count);
         drawText(text, TEXT_X, TEXT_LEVEL, GREEN);
 
@@ -321,12 +322,21 @@ void drawSquare(int y, int x, int color)
 }
 void drawGrid(void)
 {
-    // Hi Fabian! Bitte erst wenn du wieder gesund bist!!!!....
-    // int i, j;
-    // i = 3;
-
-    // drawLine(TLX - i, TLY - i, BRX - i, BRY + i, WHITE);
+    for (int i = 0; i < ROWS - HIDDEN_LINES; i += 2) {
+        for (int j = 0; j < COLS; j++) {
+            drawPlus(TLX + BOX_X * j, TLY + BOX_Y * i);
+        }
+    }
 }
+
+
+void drawPlus(const int x, const int y)
+{
+    drawLine(x + BOX_X / 3, y + BOX_Y / 2, x + BOX_X - 1 - BOX_X / 3, y + BOX_Y / 2, WHITE);
+    drawLine(x + BOX_X / 2, y + BOX_Y / 3, x + BOX_X / 2, y + BOX_Y - BOX_Y / 3, WHITE);
+}
+
+
 ///  from x1,y1 to x2,y2, color
 void drawLine(int x1, int y1, int x2, int y2, int color)
 {
