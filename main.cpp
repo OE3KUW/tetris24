@@ -35,6 +35,7 @@
 #include <stdlib.h>
 #include <thread> // Für std::this_thread::sleep_for
 #include <chrono> // Für std::chrono::milliseconds
+#include <cstring>
 
 using namespace sf;
 
@@ -80,6 +81,13 @@ using namespace sf;
 #define LEFT                1
 #define RIGHT               2
 #define DOWN                3
+
+#define MAX_USERNAME_LEN 20
+#define MAX_LINE_LEN 100
+#define HIGHSCORE_PATH "../gameData.txt"
+
+#define HIGHSCORE_Y         (BRY - 48 - 10)
+#define USERNAME_Y          (BRY - 72 - 20)
 
 int stage [ROWS][COLS] = {{0}};
 int frozen[ROWS][COLS] = {{0}};
@@ -137,12 +145,20 @@ int isMovePossible(int cx, int cy, int dir, int s[][COLS], int f[][COLS], int p[
 void move(int cx, int cy, int s[][COLS], int p[][N]);
 void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
 void eliminateCompletedLine(int f[ROWS][COLS]);
-
+void getUserData(char username[MAX_USERNAME_LEN], int *userLine, int *entireLines, int *userHighscore);
+void updateHighscore(char username[MAX_USERNAME_LEN], int userLine, int entireLines, int userHighscore, int count);
 
 
 // ******************************   m a i n:  *********************************
 int main()
 {
+    char username[MAX_USERNAME_LEN];
+    int userLine = 0;
+    int entireLines = 0;
+    int userHighscore = 0;
+    getUserData(username, &userLine, &entireLines, &userHighscore);
+
+
     int x, y, color, tick = 0;
     char text[TEXT_LENGTH];
     int count = 0;
@@ -263,13 +279,21 @@ int main()
         drawGrid();
         sprintf(text, "count: %d", count);
         drawText(text, TEXT_X, TEXT_LEVEL, GREEN);
+        sprintf(text, "user: %s", username);
+        drawText(text, TEXT_X, USERNAME_Y, GREEN);
+        sprintf(text, "highscore: %d", userHighscore);
+        drawText(text, TEXT_X, HIGHSCORE_Y, GREEN);
 
 
         if (refresh) { window.display(); refresh = FALSE;}
         std::  this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     window.close();
+
+    updateHighscore(username, userLine, entireLines, userHighscore, count);
+
     printf("--- ende! ---\n");
+
     return 0;
 }
 
@@ -811,5 +835,65 @@ void eliminateCompletedLine(int f[ROWS][COLS])
                 }
             }
         }
+    }
+}
+
+
+void getUserData(char username[MAX_USERNAME_LEN], int *userLine, int *entireLines, int *userHighscore) {
+    printf("Gib deinen username ein: ");
+    fgets(username, MAX_USERNAME_LEN, stdin);
+    *strchr(username, '\n') = '\0';
+    FILE *fp = fopen(HIGHSCORE_PATH, "r");
+    if (fp == NULL)
+        exit(1);
+
+    bool userInList = false;
+
+    char line[MAX_LINE_LEN];
+    while (fgets(line, MAX_LINE_LEN, fp) != NULL) {
+        (*entireLines)++;
+
+        const char *pos = strchr(line, ':');
+        if (strncmp(line, username, pos - line) == 0) {
+            *userHighscore = (int) strtol(pos + 1, NULL, 10);
+            *userLine = *entireLines - 1;
+            userInList = true;
+        }
+    }
+
+    fclose(fp);
+
+    if (!userInList) {
+        fp = fopen(HIGHSCORE_PATH, "a");
+        if (fp == NULL)
+            exit(1);
+
+        fprintf(fp, "\n%s: 0", username);
+
+        *userLine = *entireLines;
+        (*entireLines)++;
+        fclose(fp);
+    }
+}
+
+
+void updateHighscore(char username[MAX_USERNAME_LEN], const int userLine, const int entireLines, const int userHighscore, const int count) {
+    if (count > userHighscore) {
+        FILE *fp = fopen(HIGHSCORE_PATH, "r");
+        char fpContent[entireLines][MAX_LINE_LEN];
+
+        for (int i = 0; i < entireLines; i++) {
+            fgets(fpContent[i], MAX_LINE_LEN, fp);
+        }
+        sprintf(fpContent[userLine], "%s: %d\n", username, count);
+
+        fclose(fp);
+
+        fp = fopen(HIGHSCORE_PATH, "w");
+
+        for (int i = 0; i < entireLines; i++) {
+            fprintf(fp, "%s", fpContent[i]);
+        }
+        fclose(fp);
     }
 }
