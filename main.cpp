@@ -11,25 +11,29 @@
  * dec 11  - merge first change requests (Feichtinger, Iusufi,
  *           Hintermeier, Kerschbaumer, Landrichter, Haindl, Moosbauer)
  * jan 10  - over next figure window
+ * jan 29  - store nick name and highscore - management
  *****************************************************************************
- * install:download https://www.sfml-dev.org/download.php SFML 2.6.2 or higher
- * extract it, store it: C:/TechnischeInformatik/Cpp/SFML  ... see CMake.txt
- * copy from there SFML/bin/ all *.dll in your cmake-build-debug - compile :-)
- * noch einmal auf Deutsch:
- * 1) suche auf der Seite https://www.sfml-dev.org/download.php nach SFML
- * 2) download von dort wähle: die GCC 14.2.0 MinGW (SEH) (UCRT) version
- * 3) extrahiere das in ein Verzeichnis Deiner Wahl wie zB.
- * c://TechnischeInformatik/Cpp/SFML
- * 4) schau Dir die nun gespeicherten Files dort an.
- * 5) in CMake.txt musst Du nun diese Files eintragen.
- * derzeit steht dort:
+ * install:
+ * 1) get clone tetris24 store everything in your own directory
+ * for e.g. prepare a c:/TechnischeInformatik
+ * change to this directory and write there:
+ * git clone https://github.com/OE3KUW/tetris
+ * if you prefer zip / unzip -  use that instead.
+ * you should now have a main.cpp and a CMakeLists.txt in your dir
+ * 2) download https://www.sfml-dev.org/download.php SFML 2.6.2
+ * no higher versions!!!
+ * extract it, store it: for e.g. in C:/TechnischeInformatik/Cpp/SFML
+ * if you like, you can use any other (self prepared) directory
+ * be only sure: the path is stored then in CMakeLists -> Step 3
+ * 3) open CMakeLists.txt find there the line:
  * set(SFML_DIR "C://TechnischeInformatik/CPP/SFML/lib/cmake/SFML")
- * Das muss jetzt natürlich zusammenstimmen.
- * 6) in Deinem Verzeichnis C:/TechnischeInformatik/Cpp/SFML/bin/ findest
- * Du alle dll-Files, also files mit der Endung dll. Die kopiere dorthin, wo
- * Dein Projekt das exe-File erstellt. Das ist meist im cmake-build-debug
- * Damit compilieren und starten.
-*****************************************************************************/
+ * be sure - this is exactly the path, where you have stored your smfl-files
+ * 4) compile it - this creates a cmake-build-debug directory
+ * in this directory your executeable file will be stored - named firstSFML.exe
+ * Now copy from there SFML/bin/ all *.dll in your cmake-build-debug
+ * Its also possible to set an enviroment path for this dll - files
+ * 5) compile again!  :-)
+ ****************************************************************************/
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <stdlib.h>
@@ -156,7 +160,6 @@ int main()
     int userLine = 0;
     int entireLines = 0;
     int userHighscore = 0;
-    getUserData(username, &userLine, &entireLines, &userHighscore);
 
 
     int x, y, color, tick = 0;
@@ -170,19 +173,20 @@ int main()
     Event event;
     int cy, cx; // center point of falling objects
 
+//### Jan 25
+    getUserData(username, &userLine, &entireLines, &userHighscore);
+
     // initialization phase:
     RenderWindow window(sf::VideoMode(HEIGHT, WIDTH), "TETRIS 2CHELS 2024");
     w = &window;
 
-
     // inits:
     setNextFigure(pattern, overNextPattern);
-
-    setNextFigure(pattern, overNextPattern);
-
+    setNextFigure(pattern, overNextPattern); // twice!
 
     setNewCenterPoint(&cy,&cx);
     printf("ok!\n");
+
     while (window.isOpen() && work)
     {
         while (window.pollEvent(event))
@@ -243,9 +247,8 @@ int main()
         drawPatternFrame();
         drawPattern(pattern);
 
-        drawOverNextPatternFrame();                 //#2
-        drawOverNextPattern(overNextPattern);       //#2
-        drawGrid();
+        drawOverNextPatternFrame();
+        drawOverNextPattern(overNextPattern);
 
         tick++;
 
@@ -292,7 +295,7 @@ int main()
 
     updateHighscore(username, userLine, entireLines, userHighscore, count);
 
-    printf("--- ende! ---\n");
+    printf("--- created by 2AFELC 24/25 ! ---\n");
 
     return 0;
 }
@@ -346,7 +349,7 @@ void drawSquare(int y, int x, int color)
 }
 void drawGrid(void)
 {
-    for (int i = 0; i < ROWS - HIDDEN_LINES; i += 2) {
+    for (int i = 0; i < ROWS - HIDDEN_LINES; i += 1) {
         for (int j = 0; j < COLS; j++) {
             drawPlus(TLX + BOX_X * j, TLY + BOX_Y * i);
         }
@@ -356,8 +359,10 @@ void drawGrid(void)
 
 void drawPlus(const int x, const int y)
 {
-    drawLine(x + BOX_X / 3, y + BOX_Y / 2, x + BOX_X - 1 - BOX_X / 3, y + BOX_Y / 2, WHITE);
-    drawLine(x + BOX_X / 2, y + BOX_Y / 3, x + BOX_X / 2, y + BOX_Y - BOX_Y / 3, WHITE);
+    //### Klasse fragen
+    //    drawLine(x + BOX_X / 3, y + BOX_Y / 2, x + BOX_X - 1 - BOX_X / 3, y + BOX_Y / 2, WHITE);
+//    drawLine(x + BOX_X / 2, y + BOX_Y / 3, x + BOX_X / 2, y + BOX_Y - BOX_Y / 3, WHITE);
+    drawLine(x , y , x , y + BOX_Y , BLUE);
 }
 
 
@@ -505,24 +510,42 @@ void drawOverNextPattern(int onp[][N])
     RectangleShape Rect(sf::Vector2f(BOX_X_SIZE, BOX_Y_SIZE ));
 
     for (y = 0; y < N; y++) for (x = 0; x < N; x++)
-        {
-            switch (onp[y][x])
-            {
-                case BLACK:         Rect.setFillColor(sf::Color::Black);       break;
-                case WHITE:         Rect.setFillColor(sf::Color::White);       break;
-                case RED:           Rect.setFillColor(sf::Color::Red);         break;
-                case GREEN:         Rect.setFillColor(sf::Color::Green);       break;
-                case BLUE:          Rect.setFillColor(sf::Color::Blue);        break;
-                case YELLOW:        Rect.setFillColor(sf::Color::Yellow);      break;
-                case MAGENTA:       Rect.setFillColor(sf::Color::Magenta);     break;
-                case CYAN:          Rect.setFillColor(sf::Color::Cyan);        break;
-                case TRANSPARENT:   Rect.setFillColor(sf::Color::Transparent); break;
-                default: std::cerr << "unknown color used in drawSquare" << std::endl;
+    {
+            switch (onp[y][x]) {
+                case BLACK:
+                    Rect.setFillColor(sf::Color::Black);
+                    break;
+                case WHITE:
+                    Rect.setFillColor(sf::Color::White);
+                    break;
+                case RED:
+                    Rect.setFillColor(sf::Color::Red);
+                    break;
+                case GREEN:
+                    Rect.setFillColor(sf::Color::Green);
+                    break;
+                case BLUE:
+                    Rect.setFillColor(sf::Color::Blue);
+                    break;
+                case YELLOW:
+                    Rect.setFillColor(sf::Color::Yellow);
+                    break;
+                case MAGENTA:
+                    Rect.setFillColor(sf::Color::Magenta);
+                    break;
+                case CYAN:
+                    Rect.setFillColor(sf::Color::Cyan);
+                    break;
+                case TRANSPARENT:
+                    Rect.setFillColor(sf::Color::Transparent);
+                    break;
+                default:
+                    std::cerr << "unknown color used in drawSquare" << std::endl;
             }
-            Rect.setPosition((x * BOX_X) + TLOX,  (y * BOX_Y) + TLOY);
+            Rect.setPosition((x * BOX_X) + TLOX, (y * BOX_Y) + TLOY);
             w->draw(Rect);
-        }
 
+    }
 }
 
 
@@ -541,22 +564,22 @@ void setNextFigure(int p[][N], int onp[][N])
 
     switch (figure) {
 
-        case  0: p[3][3] = CYAN; break;
-        case  1: p[3][3] = BLUE; p[3][4] = BLUE; p[4][3] = BLUE; p[4][4] = BLUE; break;
-        case  2: p[2][2] = RED; p[2][3] = RED; p[2][4] = RED; p[3][2] = RED; p[3][3] = RED; p[3][4] = RED; p[4][2] = RED; p[4][3] = RED; p[4][4] = RED; break; // feichtinger
-        case  3: p[3][3] = GREEN; p[2][3] = GREEN; p[4][3] = GREEN; p[3][4] = GREEN;  p[3][2] = GREEN;break; //isufi
-        case  4: p[3][3] = WHITE; p[3][2] = WHITE; break;// heindl
-        case  5: p[3][3] = MAGENTA; p[3][2] = MAGENTA; p[3][4] = MAGENTA; break; // bruno
-        case  6: p[3][3] = RED; p[3][2] = RED; p[4][3] = RED; break; //jakob
-        case  7: p[3][3] = CYAN; p[3][2] = CYAN; p[3][4] = CYAN; p[4][3] = CYAN; break;
+        case  0: onp[3][3] = CYAN; break;
+        case  1: onp[3][3] = BLUE; onp[3][4] = BLUE; onp[4][3] = BLUE; onp[4][4] = BLUE; break;
+        case  2: onp[2][2] = RED; onp[2][3] = RED; onp[2][4] = RED; onp[3][2] = RED; onp[3][3] = RED; onp[3][4] = RED; onp[4][2] = RED; onp[4][3] = RED; onp[4][4] = RED; break; // feichtinger
+        case  3: onp[3][3] = GREEN; onp[2][3] = GREEN; onp[4][3] = GREEN; onp[3][4] = GREEN;  onp[3][2] = GREEN;break; //isufi
+        case  4: onp[3][3] = WHITE; onp[3][2] = WHITE; break;// heindl
+        case  5: onp[3][3] = MAGENTA; onp[3][2] = MAGENTA; onp[3][4] = MAGENTA; break; // bruno
+        case  6: onp[3][3] = RED; onp[3][2] = RED; onp[4][3] = RED; break; //jakob
+        case  7: onp[3][3] = CYAN; onp[3][2] = CYAN; onp[3][4] = CYAN; onp[4][3] = CYAN; break;
         case  8: //zeiringer
-        case  9: p[3][3] = RED; p[3][2] = RED; p[2][2] = RED; p[3][4] = RED; break;// gregor Weber
-        case 10: p[3][3] = RED; p[3][4] = RED; p[3][1] = RED; p[3][2] = RED; p[4][4] = RED; break;// kerschbaumer
-        case 11: p[3][3] = YELLOW; p[2][3] = YELLOW; p[3][2] = YELLOW; p[2][4] = YELLOW; break;
-        case 12: p[3][3] = YELLOW; p[1][1] = YELLOW; p[2][2] = YELLOW; p[2][3] = YELLOW; break; //Arnold
-        case 13: p[1][1] = GREEN; p[2][2] = GREEN; p[3][3] = GREEN; break; // tobias.m
-        case 14: p[1][1] = MAGENTA; p[2][1] = MAGENTA; p[3][1] = MAGENTA; p[3][2] = MAGENTA; break; // tobias.m
-        case 15: p[2][2] = BLUE; p[2][3] = BLUE; p[2][4] = BLUE; p[4][2] = BLUE; p[4][3] = BLUE; p[4][4] = BLUE; p[3][4] = BLUE; break;
+        case  9: onp[3][3] = RED; onp[3][2] = RED; onp[2][2] = RED; onp[3][4] = RED; break;// gregor Weber
+        case 10: onp[3][3] = RED; onp[3][4] = RED; onp[3][1] = RED; onp[3][2] = RED; onp[4][4] = RED; break;// kerschbaumer
+        case 11: onp[3][3] = YELLOW; onp[2][3] = YELLOW; onp[3][2] = YELLOW; onp[2][4] = YELLOW; break;
+        case 12: onp[3][3] = YELLOW; onp[1][1] = YELLOW; onp[2][2] = YELLOW; onp[2][3] = YELLOW; break; //Arnold
+        case 13: onp[1][1] = GREEN; onp[2][2] = GREEN; onp[3][3] = GREEN; break; // tobias.m
+        case 14: onp[1][1] = MAGENTA; onp[2][1] = MAGENTA; onp[3][1] = MAGENTA; onp[3][2] = MAGENTA; break; // tobias.m
+        case 15: onp[2][2] = BLUE; onp[2][3] = BLUE; onp[2][4] = BLUE; onp[4][2] = BLUE; onp[4][3] = BLUE; onp[4][4] = BLUE; onp[3][4] = BLUE; break;
 
     }
 
@@ -834,18 +857,36 @@ void eliminateCompletedLine(int f[ROWS][COLS])
                     f[l][i] = f[l - 1][i];
                 }
             }
+//##
+            j++; // maybe this line is now again! completed
         }
     }
 }
 
 
-void getUserData(char username[MAX_USERNAME_LEN], int *userLine, int *entireLines, int *userHighscore) {
-    printf("Gib deinen username ein: ");
+void getUserData(char username[MAX_USERNAME_LEN], int *userLine, int *entireLines, int *userHighscore)
+{
+    printf("Gib Deinen Username ein: ");
     fgets(username, MAX_USERNAME_LEN, stdin);
     *strchr(username, '\n') = '\0';
-    FILE *fp = fopen(HIGHSCORE_PATH, "r");
+    FILE * fp = fopen(HIGHSCORE_PATH, "r");
+    /*
+### Jan 25:
     if (fp == NULL)
+    {
+        // gameData.txt konnte noch nicht geöffnet werden -> ein neues erstellen!
+        fp = fopen(HIGHSCORE_PATH, "w");
+        fclose(fp);
+        fp = fopen(HIGHSCORE_PATH, "r");
+    }
+    */
+    if (fp == NULL)
+    {
+        // gameData.txt konnte noch immer nicht geöffnet werden...
+        printf("bitte lege zuerst ein gameData.txt File an\n");
+        printf("und starte das Programm dann erneut\n");
         exit(1);
+    }
 
     bool userInList = false;
 
