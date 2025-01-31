@@ -148,7 +148,7 @@ int isMovePossibleD(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
 int isMovePossible(int cx, int cy, int dir, int s[][COLS], int f[][COLS], int p[][N]);
 void move(int cx, int cy, int s[][COLS], int p[][N]);
 void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N]);
-void eliminateCompletedLine(int f[ROWS][COLS]);
+void eliminateCompletedLine(int f[ROWS][COLS],int *eliminated_lines);
 void getUserData(char username[MAX_USERNAME_LEN], int *userLine, int *entireLines, int *userHighscore);
 void updateHighscore(char username[MAX_USERNAME_LEN], int userLine, int entireLines, int userHighscore, int count);
 
@@ -170,6 +170,7 @@ int main()
     int refresh = TRUE;
     int work = TRUE;
     int doItOnlyOnce = TRUE;
+    int eliminated_lines = 0;
     Event event;
     int cy, cx; // center point of falling objects
 
@@ -271,7 +272,7 @@ int main()
                 // überprüfe alle Zeilen in frozen auf Völlständigkeit
                 // falls Vollständig -> Zeile löschen
 
-                eliminateCompletedLine(frozen); //# Kranewitter
+                eliminateCompletedLine(frozen,&eliminated_lines); //# Kranewitter
 
             }
             count++;
@@ -286,6 +287,8 @@ int main()
         drawText(text, TEXT_X, USERNAME_Y, GREEN);
         sprintf(text, "highscore: %d", userHighscore);
         drawText(text, TEXT_X, HIGHSCORE_Y, GREEN);
+        sprintf(text,"line score : %d",eliminated_lines);
+        drawText(text, TEXT_X, USERNAME_Y - 34, GREEN);
 
 
         if (refresh) { window.display(); refresh = FALSE;}
@@ -832,7 +835,7 @@ void freeze(int cx, int cy, int s[][COLS], int f[][COLS], int p[][N])
             }
 }
 
-void eliminateCompletedLine(int f[ROWS][COLS])
+void eliminateCompletedLine(int f[ROWS][COLS],int *eliminated_lines)
 {
     int eli = TRUE;
 
@@ -858,6 +861,7 @@ void eliminateCompletedLine(int f[ROWS][COLS])
                 }
             }
 //##
+            (*eliminated_lines)++;
             j++; // maybe this line is now again! completed
         }
     }
